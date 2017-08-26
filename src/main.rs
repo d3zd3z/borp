@@ -22,6 +22,11 @@ use std::path::Path;
 
 fn main() {
     let mut lock = Lock::new(Path::new(".").to_path_buf(), "lock".to_string());
-    lock.lock_exclusive().unwrap();
+    lock.lock_shared().unwrap();
     println!("lock: {:?}", lock);
+    {
+        use std::process::Command;
+        Command::new("cat").arg("lock.roster").status().unwrap();
+        Command::new("echo").status().unwrap();
+    }
 }

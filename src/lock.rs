@@ -112,6 +112,61 @@ impl Roster {
         self.update(path)
     }
 
+    /// Attempt to convert this roster to a shared lock.  If possible, writes the new roster out.
+    /// This should only be done when the surrounding exclusive lock is already taken.
+    pub fn make_shared<P: AsRef<Path>>(&mut self, id: ProcessId, path: P) -> Result<()> {
+        match *self {
+            Roster::Empty => {
+                *self = Roster::Shared(vec![id]);
+            }
+            // TODO: Don't currently support downgrading locks.
+            Roster::Exclusive(_) => unimplemented!(),
+            Roster::Shared(ref mut v) => {
+                if v.contains(&id) {
+                    panic!("Attempt to re-aquire shared lock");
+                }
+                v.push(id);
+            }
+        }
+        self.update(path)
+    }
+
+    /// Release the lock.  For shared locks, loads the existing roster and removes ourselves.
+    pub fn release<P: AsRef<Path>>(&mut self, id: &ProcessId, path: P) -> Result<()> {
+        let rost = Self::load(&path)?;
+
+        match rost {
+            Roster::Empty => panic!("Not expecting to release an empty roster"),
+            Roster::Exclusive(_) => {
+                match *self {
+                    Roster::Exclusive(_) => (),
+                    _ => panic!("Roster file changed types"),
+                }
+                *self = Roster::Empty;
+            }
+            Roster::Shared(mut v) => {
+                match *self {
+                    Roster::Shared(_) => (),
+                    _ => panic!("Roster file changed types"),
+                }
+
+                match v.iter().position(|x| x == id) {
+                    None => panic!("Our id not contained in shared roster"),
+                    Some(pos) => {
+                        v.remove(pos);
+                    }
+                }
+
+                if v.is_empty() {
+                    *self = Roster::Empty;
+                } else {
+                    *self = Roster::Shared(v);
+                }
+            }
+        }
+        self.update(path)
+    }
+
     /// Update the roster file with the current state.
     pub fn update<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         match *self {
@@ -180,13 +235,29 @@ impl Lock {
         Ok(())
     }
 
+    pub fn lock_shared(&mut self) -> Result<()> {
+        if self.exclusive.is_some() {
+            panic!("Downgrading locks is not currently supported");
+        }
+
+        let _el = ExclusiveLock::new(self.exclusive_name())?;
+        let rname = self.roster_name();
+        self.roster = Roster::load(&rname)?;
+        self.roster.make_shared(self.id.clone(), &rname)?;
+
+        Ok(())
+    }
+
     /// Release the current lock.
     pub fn release(&mut self) -> Result<()> {
-        let rost = mem::replace(&mut self.roster, Roster::Empty);
+        let mut rost = mem::replace(&mut self.roster, Roster::Empty);
         match rost {
             Roster::Empty => return Ok(()),
-            Roster::Exclusive(_) => Roster::Empty.update(self.roster_name()),
-            Roster::Shared(_) => unimplemented!(),
+            Roster::Exclusive(_) => rost.release(&self.id, self.roster_name()),
+            Roster::Shared(_) => {
+                let _el = ExclusiveLock::new(self.exclusive_name())?;
+                rost.release(&self.id, self.roster_name())
+            }
         }
     }
 
