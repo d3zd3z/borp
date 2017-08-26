@@ -243,6 +243,14 @@ impl Lock {
         let _el = ExclusiveLock::new(self.exclusive_name())?;
         let rname = self.roster_name();
         self.roster = Roster::load(&rname)?;
+        match self.roster {
+            Roster::Exclusive(_) => {
+                // Be sure to take away this roster lock so that we don't remove it upon drop.
+                self.roster = Roster::Empty;
+                panic!("Incoherent lock files, exclusive roster without lock dir");
+            }
+            _ => (),
+        }
         self.roster.make_shared(self.id.clone(), &rname)?;
 
         Ok(())
