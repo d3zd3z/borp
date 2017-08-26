@@ -1,0 +1,16 @@
+[package]
+name = "borp"
+version = "0.1.0"
+authors = ["David Brown <david.brown@linaro.org>"]
+
+[dependencies]
+hostname = "0.1"
+libc = "0.2"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+[[bin]]
+name = "borp"
+test = false
+doc = false
