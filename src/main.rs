@@ -17,8 +17,11 @@ extern crate borp;
 // - [ ] Index files
 // - [ ] Manifest
 
+use borp::lock::Lock;
+use std::path::Path;
+
 fn main() {
-    let pid = borp::lock::get_process_id();
-    println!("pid: {:}", serde_json::to_string(&pid).unwrap());
-    println!("pid: {:}", pid.to_filename());
+    let mut lock = Lock::new(Path::new(".").to_path_buf(), "lock".to_string());
+    lock.lock_exclusive().unwrap();
+    println!("lock: {:?}", lock);
 }
