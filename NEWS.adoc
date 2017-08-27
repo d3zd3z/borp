@@ -1,0 +1,18 @@
+= ChangeLog
+
+This document describes the changes to _borp_ in each release.  The
+Unreleased section at the beginning describes changes made since the
+latest release, and can give an idea of what to expect for the next
+release.
+
+Please keep the Unreleased section up to date with the commits that
+make the changes.
+
+== Unreleased
+
+=== Added
+- Locking.  An implementatio of the lock file/directory used by Borg
+  backup to lock repositories and cache directories.
+- Config file parsing.  Ability to parse the config file used by Borg.
+  This is a simplified parser for what Python's ParserConfig generates
+  from within Borg.

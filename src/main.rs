@@ -10,7 +10,7 @@ extern crate serde_json;
 extern crate borp;
 
 // Things that will need to be implemented:
-// - [ ] Lock
+// - [X] Lock
 // - [ ] Config file
 // - [ ] Repository
 // - [ ] LoggedIO
@@ -18,6 +18,8 @@ extern crate borp;
 // - [ ] Manifest
 
 use borp::lock::Lock;
+use std::fs::File;
+use std::io::Read;
 use std::path::Path;
 
 fn main() {
@@ -29,4 +31,10 @@ fn main() {
         Command::new("cat").arg("lock.roster").status().unwrap();
         Command::new("echo").status().unwrap();
     }
+
+    let mut data: Vec<u8> = vec![];
+    File::open("config").unwrap().read_to_end(&mut data).unwrap();
+    println!("parse: {:?}", borp::config::entries(&data));
+    // let conf: toml::Value = toml::from_slice(&data).unwrap();
+    // println!("config: {:?}", conf);
 }

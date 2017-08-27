@@ -119,7 +119,6 @@ impl Roster {
             Roster::Empty => {
                 *self = Roster::Shared(vec![id]);
             }
-            // TODO: Don't currently support downgrading locks.
             Roster::Exclusive(_) => unimplemented!(),
             Roster::Shared(ref mut v) => {
                 if v.contains(&id) {
