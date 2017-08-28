@@ -2,6 +2,12 @@
 name = "borp"
 version = "0.1.0"
 authors = ["David Brown <david.brown@linaro.org>"]
+license = "MIT"
+readme = "README.adoc"
+repository = "https://github.com/d3zd3z/borp"
+description = """
+Borp is Borg in Rust.
+"""
 
 [dependencies]
 data-encoding = "1.2"

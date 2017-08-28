@@ -1,0 +1,8 @@
+= Borp
+
+Borp is a project.  It is starting as just some code to help me
+understand the storage format and functionality of
+https://borgbackup.readthedocs.io/en/stable/[BorgBackup].  It is not
+intended (at least any time soon) to be a fully functional
+replacement, but a reasonable initial goal would be an alternate
+implementation that is able to restore a given backup.
